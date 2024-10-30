@@ -156,7 +156,12 @@ function ensureFilesExist() {
     });
 }
 
+ensureFilesExist();
+calculateValidFlights();
+handleInvalidFlights();
+
 module.exports = {
+    readCsv,
     ensureFilesExist,
     calculateValidFlights,
     handleInvalidFlights,

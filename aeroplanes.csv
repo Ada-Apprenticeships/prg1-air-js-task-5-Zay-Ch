@@ -1,0 +1,4 @@
+type, runningcostperseatper100km, maxflightrange(km), economyseats, businessseats, firstclassseats
+Medium narrow body,£8,2650,160,12,0
+Large narrow body,£7,5600,180,20,4
+Medium wide body,£5,4050,380,20,8
