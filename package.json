@@ -2,5 +2,13 @@
   "dependencies": {
     "csv-parser": "^3.0.0",
     "fs": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "chai": "^5.1.2",
+    "mocha": "^10.8.1",
+    "sinon": "^19.0.2"
+  },
+  "scripts": {
+    "test": "mocha"
   }
 }
