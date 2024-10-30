@@ -156,7 +156,8 @@ function ensureFilesExist() {
     });
 }
 
-// Execute the functions
-ensureFilesExist();
-calculateValidFlights();
-handleInvalidFlights();
+module.exports = {
+    ensureFilesExist,
+    calculateValidFlights,
+    handleInvalidFlights,
+}
