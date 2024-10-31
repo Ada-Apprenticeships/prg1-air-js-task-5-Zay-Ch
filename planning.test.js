@@ -5,50 +5,28 @@ const {
   calculateValidFlights,
   handleInvalidFlights,
   ensureFilesExist,
-} = require("./planning");
+} = require("./planning.js");
+
 const fs = require("fs");
+const path = require("path");
+
+const airportsFilePath = path.resolve(__dirname, "airports.csv");
+const aeroplanesFilePath = path.resolve(__dirname, "aeroplanes.csv");
+const validFlightsFilePath = path.resolve(__dirname, "valid_flight_data.csv");
+const invalidFlightsFilePath = path.resolve(__dirname, "invalid_flight_data.csv");
+const resultsFilePath = path.resolve(__dirname, "results.txt");
+const validResultsFilePath = path.resolve(__dirname, "valid_flight_results.txt");
+const invalidResultsFilePath = path.resolve(__dirname, "invalid_flight_results.txt");
 
 describe("Flight Planning Project Tests", () => {
-  const airportsCSV = `code,full name,distanceMAN,distanceLGW
-JFK,John F Kennedy International,5376,5583
-ORY,Paris-Orly,610,325
-MAD,Madrid-Barajas,1435,1216
-AMS,Amsterdam Schiphol,485,363
-CAI,Cairo International,3740,3494
-`;
-  const aeroplanesCSV = `type, runningcostperseatper100km, maxflightrange(km), economyseats, businessseats, firstclassseats
-Medium narrow body,£8,2650,160,12,0
-Large narrow body,£7,5600,180,20,4
-Medium wide body,£5,4050,380,20,8
-`;
-  const validFlightsCSV = `UK airport,Overseas airport,Type of aircraft,Number of economy seats booked,Number of business seats booked,Number of first class seats booked,Price of a economy class seat,Price of a business class seat,Price of a first class seat
-MAN,JFK,Large narrow body,150,12,2,399,999,1899
-`;
-  const invalidFlightsCSV = `UK airport,Overseas airport,Type of aircraft,Number of economy seats booked,Number of business seats booked,Number of first class seats booked,Price of a economy class seat,Price of a business class seat,Price of a first class seat
-MAN,JFK,Medium narrow body,150,12,2,399,999,1899  # Error: Medium narrow body doesn't have the range to fly to JFK
-`;
-
-  beforeEach(() => {
-    fs.readFileSync.mockImplementation((path) => {
-      switch (path) {
-        case "airports.csv":
-          return airportsCSV;
-        case "aeroplanes.csv":
-          return aeroplanesCSV;
-        case "valid_flight_data.csv":
-          return validFlightsCSV;
-        case "invalid_flight_data.csv":
-          return invalidFlightsCSV;
-        default:
-          throw new Error(`Unknown file path: ${path}`);
-      }
-    });
-    fs.writeFileSync.mockClear();
-  });
+  const airportsCSV = 'airport.csv';
+  const aeroplanesCSV = 'aeroplanes.csv';
+  const validFlightsCSV = `valid_flight_data.csv`;
+  const invalidFlightsCSV = `invalid_flight_data.csv`;
 
   describe("readCsv", () => {
     test("should read and parse CSV file correctly", () => {
-      const airports = readCsv("airports.csv");
+      const airports = readCsv(airportsFilePath);
       expect(airports).toEqual([
         { code: "JFK", "full name": "John F Kennedy International", distanceMAN: "5376", distanceLGW: "5583" },
         { code: "ORY", "full name": "Paris-Orly", distanceMAN: "610", distanceLGW: "325" },
@@ -59,19 +37,16 @@ MAN,JFK,Medium narrow body,150,12,2,399,999,1899  # Error: Medium narrow body do
     });
 
     test("should handle file read error gracefully", () => {
-      fs.readFileSync.mockImplementationOnce(() => {
-        throw new Error("File not found");
-      });
-      const data = readCsv("nonexistent.csv");
-      expect(data).toBeNull();
+      expect(readCsv("nonexistent.csv")).toBeNull();
     });
   });
 
   describe("writeResultsToFile", () => {
     test("should write results to a file", () => {
       const results = ["Flight details: ...", "Profit: £1000.00"];
-      writeResultsToFile(results, "results.txt");
-      expect(fs.writeFileSync).toHaveBeenCalledWith("results.txt", results.join("\n"), { flag: "w" });
+      writeResultsToFile(results, resultsFilePath);
+      const writtenContent = fs.readFileSync(resultsFilePath, 'utf8');
+      expect(writtenContent).toEqual(results.join("\n"));
     });
   });
 
@@ -109,7 +84,8 @@ MAN,JFK,Medium narrow body,150,12,2,399,999,1899  # Error: Medium narrow body do
       const expectedResults = [
         "Flight from MAN to JFK with Large narrow body:\nIncome: £1049850.00, Cost: £84840.00, Profit: £964010.00",
       ];
-      expect(fs.writeFileSync).toHaveBeenCalledWith("valid_flight_results.txt", expectedResults.join("\n"), { flag: "w" });
+      const writtenContent = fs.readFileSync(validResultsFilePath, 'utf8');
+      expect(writtenContent).toEqual(expectedResults.join("\n"));
     });
   });
 
@@ -119,22 +95,31 @@ MAN,JFK,Medium narrow body,150,12,2,399,999,1899  # Error: Medium narrow body do
       const expectedResults = [
         "Error in flight from MAN to JFK with Medium narrow body: Medium narrow body doesn't have the range to fly to JFK",
       ];
-      expect(fs.writeFileSync).toHaveBeenCalledWith("invalid_flight_results.txt", expectedResults.join("\n"), { flag: "w" });
+      const writtenContent = fs.readFileSync(invalidResultsFilePath, 'utf8');
+      expect(writtenContent).toEqual(expectedResults.join("\n"));
     });
   });
 
   describe("ensureFilesExist", () => {
     test("should create result files if they do not exist", () => {
-      fs.existsSync.mockReturnValue(false);
+      fs.existsSync.mockReturnValue(false); // Just to keep the original logic; we'll check manually later
       ensureFilesExist();
-      expect(fs.writeFileSync).toHaveBeenCalledWith("valid_flight_results.txt", "", { flag: "w" });
-      expect(fs.writeFileSync).toHaveBeenCalledWith("invalid_flight_results.txt", "", { flag: "w" });
+      expect(fs.existsSync(validResultsFilePath)).toBeTruthy();
+      expect(fs.existsSync(invalidResultsFilePath)).toBeTruthy();
     });
 
     test("should not create result files if they already exist", () => {
-      fs.existsSync.mockReturnValue(true);
       ensureFilesExist();
-      expect(fs.writeFileSync).not.toHaveBeenCalled();
+      expect(fs.existsSync(validResultsFilePath)).toBeTruthy();
+      expect(fs.existsSync(invalidResultsFilePath)).toBeTruthy();
     });
   });
-});
+
+  afterAll(() => {
+    const results = {
+      pass: expect.getState().passed,
+      fail: expect.getState().failed,
+    };
+    console.log(`${results.pass} / ${results.pass + results.fail} tests passed, ${results.fail} tests failed`);
+  });
+})

@@ -50,29 +50,11 @@ function calculateValidFlights() {
     const validFlights = readCsv('valid_flight_data.csv');
     const results = [];
 
-    console.log("Airports Data:", airports);
-    console.log("Aeroplanes Data:", aeroplanes);
-    console.log("Valid Flights Data:", validFlights);
-
     validFlights.forEach(flight => { // Iterate over each valid flight to process the data
         const flightData = parseFlightData(flight);
         const airport = airports.find(a => a.code === flightData.overseasAirportCode);
         const aeroplane = aeroplanes.find(a => a.type === flightData.aircraftType);
 
-        // Debugging
-        console.log(`Checking flight: ${flightData.ukAirport} to ${flightData.overseasAirportCode} with ${flightData.aircraftType}`);
-        console.log(`Parsed Seats: Economy=${flightData.economySeats}, Business=${flightData.businessSeats}, First Class=${flightData.firstClassSeats}`);
-        
-        if (airport) {
-            console.log(`Airport found: ${airport['full name']} at distance ${flightData.ukAirport === 'MAN' ? airport.distanceMAN : airport.distanceLGW}`);
-        } else {
-            console.log(`Airport not found: ${flightData.overseasAirportCode}`);
-        }
-        if (aeroplane) {
-            console.log(`Aeroplane found: ${flightData.aircraftType} with max range ${aeroplane['maxflightrange(km)']}`);
-        } else {
-            console.log(`Aeroplane not found: ${flightData.aircraftType}`);
-        }
         if (airport && aeroplane) { // If both valid proceed
             const distance = flightData.ukAirport === 'MAN' ? parseInt(airport.distanceMAN) : parseInt(airport.distanceLGW);
             const maxRange = parseInt(aeroplane['maxflightrange(km)']);
@@ -87,18 +69,11 @@ function calculateValidFlights() {
                 // Format the result and add it to results array
                 const result = `Flight from ${flightData.ukAirport} to ${flightData.overseasAirportCode} with ${flightData.aircraftType}:\nIncome: £${income.toFixed(2)}, Cost: £${totalCost.toFixed(2)}, Profit: £${profit.toFixed(2)}`;
                 results.push(result);
-            } else {
-                console.log(`Flight invalid: Distance exceeds max range or too many seats booked.`);
             }
-        } else {
-            console.log(`Flight validation failed: Invalid airport or aircraft type.`);
         }
     });
     if (results.length > 0) {
         writeResultsToFile(results, 'valid_flight_results.txt');
-        results.forEach(result => console.log(result));
-    } else {
-        console.log("No valid flights processed.");
     }
 }
 
@@ -142,7 +117,6 @@ function handleInvalidFlights() {
             results.push(result);
         }
     });
-    results.forEach(result => console.log(result));
     writeResultsToFile(results, 'invalid_flight_results.txt');
 }
 
@@ -155,10 +129,6 @@ function ensureFilesExist() {
         }
     });
 }
-
-ensureFilesExist();
-calculateValidFlights();
-handleInvalidFlights();
 
 module.exports = {
     readCsv,
