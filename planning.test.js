@@ -116,7 +116,15 @@ describe("Flight Planning Project Tests", () => {
     test("should calculate valid flights and write to file", () => {
       calculateValidFlights();
       const expectedResults = [
-        "Flight from MAN to JFK with Large narrow body:\nIncome: £1049850.00, Cost: £84840.00, Profit: £964010.00",
+        "Flight from MAN to JFK with Large narrow body:\nIncome: £75636.00, Cost: £61716.48, Profit: £13919.52",
+        "Flight from LGW to ORY with Medium narrow body:\nIncome: £21600.00, Cost: £3328.00, Profit: £18272.00",
+        "Flight from MAN to MAD with Medium wide body:\nIncome: £58400.00, Cost: £11767.00, Profit: £46633.00",
+        "Flight from LGW to AMS with Medium narrow body:\nIncome: £14400.00, Cost: £3078.24, Profit: £11321.76",
+        "Flight from MAN to CAI with Large narrow body:\nIncome: £97800.00, Cost: £47385.80, Profit: £50414.20",
+        "Flight from MAN to ORY with Medium narrow body:\nIncome: £17240.00, Cost: £5709.60, Profit: £11530.40",
+        "Flight from LGW to MAD with Large narrow body:\nIncome: £66150.00, Cost: £15662.08, Profit: £50487.92",
+        "Flight from MAN to AMS with Medium narrow body:\nIncome: £11650.00, Cost: £3686.00, Profit: £7964.00",
+        "Flight from LGW to CAI with Medium wide body:\nIncome: £114400.00, Cost: £34241.20, Profit: £80158.80",
       ];
       const writtenContent = fs.readFileSync(validResultsFilePath, "utf8");
       expect(writtenContent).toEqual(expectedResults.join("\n"));
@@ -127,7 +135,16 @@ describe("Flight Planning Project Tests", () => {
     test("should handle invalid flights and write errors to file", () => {
       handleInvalidFlights();
       const expectedResults = [
-        "Error in flight from MAN to JFK with Medium narrow body: Medium narrow body doesn't have the range to fly to JFK",
+        "Error in flight from MAN to JFK with Medium narrow body: Too many first-class seats booked (2 > 0)",
+        "Error in flight from LGW to ORY with Large narrow body: Too many economy seats booked (200 > 180)",
+        "Error in flight from MAN to MAD with Medium narrow body: Too many first-class seats booked (2 > 0)",
+        "Error in flight from LGW to AMS with Medium narrow body: Too many economy seats booked (180 > 160)",
+        "Error in flight from MAN to CAI with Large narrow body: Too many business seats booked (25 > 20)",
+        "Error in flight from LGW to JFKKK with Medium wide body: Invalid airport code: JFKKK",
+        "Error in flight from MAN to ORY with Medium narrow body: Too many economy seats booked (165 > 160)",
+        "Error in flight from LGW to MAD with Large narrow body: Too many business seats booked (22 > 20)",
+        "Error in flight from MAN to AMSSS with Medium narrow body: Invalid airport code: AMSSS",
+        "Error in flight from LGW to CAI with Medium wide body: Too many economy seats booked (385 > 380)",
       ];
       const writtenContent = fs.readFileSync(invalidResultsFilePath, "utf8");
       expect(writtenContent).toEqual(expectedResults.join("\n"));
