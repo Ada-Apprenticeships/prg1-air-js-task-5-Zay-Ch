@@ -20,7 +20,7 @@ function readCsv(filename, delimiter = ",") {
     });
     return data;
   } catch (err) {
-    console.log("Error reading file:", err.message);
+    console.log("Error reading file:", filename);
   }
 }
 
