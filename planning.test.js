@@ -79,7 +79,7 @@ describe("Flight Planning Project Tests", () => {
     });
   });
 
-  // Test  parseFlightData function to ensure it correctly parses flight data
+  // Test parseFlightData function to ensure it correctly parses flight data
   describe("parseFlightData", () => {
     test("should parse flight data correctly", () => {
       const flight = {
@@ -161,7 +161,6 @@ describe("Flight Planning Project Tests", () => {
       expect(fs.existsSync(invalidResultsFilePath)).toBeTruthy();
     });
 
-    // Test to ensure existing files are not overwritten
     test("should not create result files if they already exist", () => {
       fs.writeFileSync(validResultsFilePath, "dummy content");
       fs.writeFileSync(invalidResultsFilePath, "dummy content");
