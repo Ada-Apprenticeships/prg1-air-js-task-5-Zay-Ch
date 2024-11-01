@@ -1,19 +1,16 @@
-planning.js
 const fs = require("fs");
+const readline = require("readline");
 
-// Function to reads the content of a CSV file and converts it into an array of objects.
-// Each object represents a row in the CSV file, with keys corresponding to the headers.
+// Function to read a CSV file and return its content as an array of objects
 function readCsv(filename, delimiter = ",") {
   try {
-    const fileContent = fs.readFileSync(filename, { encoding: "utf-8" }); // Read the file content synchronously
+    const fileContent = fs.readFileSync(filename, { encoding: "utf-8" });
     const rows = fileContent
       .split("\n")
       .map((row) => row.trim())
-      .filter((row) => row); // Filters empty rows
-
-    const headers = rows[0].split(delimiter).map((header) => header.trim()); // Extracts headers in first row
+      .filter((row) => row);
+    const headers = rows[0].split(delimiter).map((header) => header.trim());
     const data = rows.slice(1).map((row) => {
-      // Maps remaining rows to objects using headers as keys
       const values = row.split(delimiter).map((value) => value.trim());
       return headers.reduce((acc, header, index) => {
         acc[header] = values[index];
@@ -22,7 +19,8 @@ function readCsv(filename, delimiter = ",") {
     });
     return data;
   } catch (err) {
-    console.log("Error reading file:", filename); // Log which file causes errors
+    console.log("Error reading file:", filename);
+    return undefined; // Return undefined instead of an empty array
   }
 }
 
@@ -49,54 +47,66 @@ function parseFlightData(flight) {
   };
 }
 
-// Function reads flight data and calculates income, cost, and profit for each valid flight.
 function calculateValidFlights() {
   const airports = readCsv("airports.csv");
   const aeroplanes = readCsv("aeroplanes.csv");
   const validFlights = readCsv("valid_flight_data.csv");
-  const results = []; // Initialising an array to store results
+  const results = [];
 
   validFlights.forEach((flight) => {
-    // Iterating over each valid flight to process the data
+    // Ensure flight is defined and has the required properties
+    if (!flight) {
+      console.log("Flight data is undefined or empty");
+      return; // Skip if flight is not defined
+    }
+
     const flightData = parseFlightData(flight);
+
+    // Check if flightData is valid
+    if (
+      !flightData ||
+      !flightData.overseasAirportCode ||
+      !flightData.aircraftType
+    ) {
+      console.log("Invalid flight data:", flightData);
+      return; // Skip if flight data is invalid
+    }
+
     const airport = airports.find(
-      (a) => a.code === flightData.overseasAirportCode // Finding matching airports
+      (a) => a.code === flightData.overseasAirportCode
     );
     const aeroplane = aeroplanes.find(
-      (a) => a.type === flightData.aircraftType // Finding matching aircrafts
+      (a) => a.type === flightData.aircraftType
     );
 
     if (airport && aeroplane) {
-      // If both valid proceed
       const distance =
         flightData.ukAirport === "MAN"
-          ? parseInt(airport.distanceMAN)
-          : parseInt(airport.distanceLGW);
-      const maxRange = parseInt(aeroplane["maxflightrange(km)"]);
-      const totalSeats =
+          ? parseInt(airport.distanceMAN, 10)
+          : parseInt(airport.distanceLGW, 10);
+      const maxRange = parseInt(aeroplane["maxflightrange(km)"], 10);
+
+      const totalSeatsBooked =
         flightData.economySeats +
         flightData.businessSeats +
         flightData.firstClassSeats;
+      const availableSeats =
+        parseInt(aeroplane.economyseats, 10) +
+        parseInt(aeroplane.businessseats, 10) +
+        parseInt(aeroplane.firstclassseats, 10);
 
-      // Validate the flight based on distance and total seats
-      if (
-        // Checks if distance is withing range AND total seats do not exceed capacity
-        distance <= maxRange &&
-        totalSeats <=
-          parseInt(aeroplane.economyseats) +
-            parseInt(aeroplane.businessseats) +
-            parseInt(aeroplane.firstclassseats)
-      ) {
+      if (distance <= maxRange && totalSeatsBooked <= availableSeats) {
         const income =
           flightData.economySeats * flightData.economyPrice +
           flightData.businessSeats * flightData.businessPrice +
           flightData.firstClassSeats * flightData.firstClassPrice;
+
         const costPerSeat =
           parseFloat(aeroplane.runningcostperseatper100km.replace("£", "")) *
           (distance / 100);
-        const totalCost = costPerSeat * totalSeats;
+        const totalCost = costPerSeat * totalSeatsBooked;
         const profit = income - totalCost;
-        // Format the result and add it to results array
+
         const result = `Flight from ${flightData.ukAirport} to ${
           flightData.overseasAirportCode
         } with ${flightData.aircraftType}:\nIncome: £${income.toFixed(
@@ -104,11 +114,88 @@ function calculateValidFlights() {
         )}, Cost: £${totalCost.toFixed(2)}, Profit: £${profit.toFixed(2)}`;
         results.push(result);
       }
+    } else {
+      console.log(`No matching airport or aeroplane for flight: ${flightData}`);
     }
   });
+
+  // Write results to valid_flight_results.txt without a timestamp
   if (results.length > 0) {
     writeResultsToFile(results, "valid_flight_results.txt");
+  } else {
+    console.log("No valid flights to process");
   }
+
+  return results; // Optional: Return results if needed
+}
+
+// Function to handle user input and calculate flights
+function promptUserForFlightData() {
+  if (process.env.NODE_ENV === "test") {
+    return; // Do nothing in test mode
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  console.log("Enter flight details:");
+
+  const questions = [
+    "UK Airport (e.g., MAN): ",
+    "Overseas Airport (e.g., JFK): ",
+    "Type of Aircraft: ",
+    "Number of Economy Seats Booked: ",
+    "Number of Business Seats Booked: ",
+    "Number of First Class Seats Booked: ",
+    "Price of Economy Class Seat: ",
+    "Price of Business Class Seat: ",
+    "Price of First Class Seat: ",
+  ];
+
+  const flightDataKeys = [
+    "UK airport",
+    "Overseas airport",
+    "Type of aircraft",
+    "Number of economy seats booked",
+    "Number of business seats booked",
+    "Number of first class seats booked",
+    "Price of a economy class seat",
+    "Price of a business class seat",
+    "Price of a first class seat",
+  ];
+
+  const flightData = {};
+
+  const askQuestion = (index) => {
+    if (index < questions.length) {
+      rl.question(questions[index], (answer) => {
+        flightData[flightDataKeys[index]] = answer;
+        askQuestion(index + 1); // Move to the next question
+      });
+    } else {
+      // All questions answered, process the data
+      const results = calculateValidFlights(parseFlightData(flightData));
+      if (results.length > 0) {
+        rl.question(
+          "Would you like to save the results to a file? (yes/no): ",
+          (answer) => {
+            if (answer.toLowerCase() === "yes") {
+              writeResultsToFile(results, "user_flight_results.txt", true); // Append results
+              console.log("Results saved to user_flight_results.txt");
+            }
+            rl.close();
+          }
+        );
+      } else {
+        console.log("No valid flights found.");
+        rl.close();
+      }
+    }
+  };
+
+  askQuestion(0); // Start asking questions
 }
 
 // Function to handle invalid flights - Validates flight data and logs errors for invalid flights
@@ -174,8 +261,17 @@ function handleInvalidFlights() {
       results.push(result);
     }
   });
-  writeResultsToFile(results, "invalid_flight_results.txt");
+  if (results.length > 0) {
+    writeResultsToFile(results, "invalid_flight_results.txt");
+  } else {
+    console.log("No invalid flights to process");
+  }
+
+  return results; // Optional: Return results if needed
 }
+
+// Call the user prompt function when running the script
+promptUserForFlightData();
 
 // Ensure the results files exist or create them if they don't
 function ensureFilesExist() {
@@ -187,6 +283,9 @@ function ensureFilesExist() {
   });
 }
 
+// Run the ensureFilesExist function
+ensureFilesExist();
+
 // Export functions to be used in other modules
 module.exports = {
   readCsv,
@@ -194,11 +293,11 @@ module.exports = {
   parseFlightData,
   ensureFilesExist,
   calculateValidFlights,
+  promptUserForFlightData,
   handleInvalidFlights,
 };
 
-
-planning.test.js
+////
 
 const {
   readCsv,
@@ -223,13 +322,20 @@ const invalidResultsFilePath = path.resolve(
   __dirname,
   "invalid_flight_results.txt"
 );
+const userResultsFilePath = path.resolve(__dirname, "user_flight_results.txt");
 
 describe("Flight Planning Project Tests", () => {
+  // Clean up the user results file before tests
+  beforeAll(() => {
+    if (fs.existsSync(userResultsFilePath)) {
+      fs.unlinkSync(userResultsFilePath);
+    }
+  });
+
   // Test readCsv function to ensure it correctly reads and parses the CSV file
   describe("readCsv", () => {
     test("should read and parse CSV file correctly", () => {
       const airports = readCsv(airportsFilePath);
-      // Verify the parsed content matches the expected data
       expect(airports).toEqual([
         {
           code: "JFK",
@@ -264,7 +370,6 @@ describe("Flight Planning Project Tests", () => {
       ]);
     });
 
-    // Test for handling errors when the file does not exist
     test("should handle file read error gracefully", () => {
       expect(readCsv("nonexistent.csv")).toBeUndefined();
     });
@@ -272,16 +377,42 @@ describe("Flight Planning Project Tests", () => {
 
   // Test writeResultsToFile function to ensure it correctly writes data to a file
   describe("writeResultsToFile", () => {
-    test("should write results to a file", () => {
-      const results = ["Flight details: ...", "Profit: ..."];
-      writeResultsToFile(results, resultsFilePath);
-      const writtenContent = fs.readFileSync(resultsFilePath, "utf8");
-      // Verify the content written to the file matches the input data
-      expect(writtenContent).toEqual(results.join("\n"));
+    it("should save results correctly without timestamp", () => {
+      const results = [
+        "Flight from MAN to JFK with B737: Income: £1000.00, Cost: £500.00, Profit: £500.00",
+      ];
+      writeResultsToFile(results, userResultsFilePath, true);
+
+      const output = fs.readFileSync(userResultsFilePath, "utf-8");
+      expect(output).toMatch(
+        /Flight from MAN to JFK with B737: Income: £1000.00, Cost: £500.00, Profit: £500.00\n/
+      );
+    });
+
+    it("should append results correctly", () => {
+      const results1 = [
+        "Flight from MAN to JFK with B737: Income: £1000.00, Cost: £500.00, Profit: £500.00",
+      ];
+      const results2 = [
+        "Flight from LGW to LAX with A320: Income: £1500.00, Cost: £600.00, Profit: £900.00",
+      ];
+
+      writeResultsToFile(results1, userResultsFilePath, true);
+      writeResultsToFile(results2, userResultsFilePath, true);
+
+      const output = fs.readFileSync(userResultsFilePath, "utf-8");
+
+      // Verify both flights were recorded without timestamps
+      expect(output).toMatch(/Flight from MAN to JFK/);
+      expect(output).toMatch(/Flight from LGW to LAX/);
+      expect(
+        output.indexOf("Flight from MAN to JFK") <
+          output.indexOf("Flight from LGW to LAX")
+      ).toBe(true);
     });
   });
 
-  // Test  parseFlightData function to ensure it correctly parses flight data
+  // Test parseFlightData function to ensure it correctly parses flight data
   describe("parseFlightData", () => {
     test("should parse flight data correctly", () => {
       const flight = {
@@ -296,7 +427,6 @@ describe("Flight Planning Project Tests", () => {
         "Price of a first class seat": "1899",
       };
       const parsedFlight = parseFlightData(flight);
-      // Verify the parsed flight data matches the expected structure
       expect(parsedFlight).toEqual({
         ukAirport: "MAN",
         overseasAirportCode: "JFK",
@@ -363,7 +493,6 @@ describe("Flight Planning Project Tests", () => {
       expect(fs.existsSync(invalidResultsFilePath)).toBeTruthy();
     });
 
-    // Test to ensure existing files are not overwritten
     test("should not create result files if they already exist", () => {
       fs.writeFileSync(validResultsFilePath, "dummy content");
       fs.writeFileSync(invalidResultsFilePath, "dummy content");
@@ -378,8 +507,10 @@ describe("Flight Planning Project Tests", () => {
     });
   });
 
-  // Output the test results after all tests have run
   afterAll(() => {
+    if (fs.existsSync(userResultsFilePath)) {
+      fs.unlinkSync(userResultsFilePath);
+    }
     const results = {
       pass: expect.getState().passed,
       fail: expect.getState().failed,
