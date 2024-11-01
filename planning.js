@@ -20,8 +20,7 @@ function readCsv(filename, delimiter = ",") {
     });
     return data;
   } catch (err) {
-    console.error("Error reading file:", err.message);
-    return null;
+    console.log("Error reading file:", err.message);
   }
 }
 
@@ -185,6 +184,8 @@ function ensureFilesExist() {
 
 module.exports = {
   readCsv,
+  writeResultsToFile,
+  parseFlightData,
   ensureFilesExist,
   calculateValidFlights,
   handleInvalidFlights,
