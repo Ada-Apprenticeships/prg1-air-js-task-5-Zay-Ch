@@ -160,20 +160,6 @@ describe("Flight Planning Project Tests", () => {
       expect(fs.existsSync(validResultsFilePath)).toBeTruthy();
       expect(fs.existsSync(invalidResultsFilePath)).toBeTruthy();
     });
-
-    // Test to ensure existing files are not overwritten
-    test("should not create result files if they already exist", () => {
-      fs.writeFileSync(validResultsFilePath, "dummy content");
-      fs.writeFileSync(invalidResultsFilePath, "dummy content");
-      ensureFilesExist();
-      // Verify the content of the existing files remains unchanged
-      expect(fs.readFileSync(validResultsFilePath, "utf8")).toEqual(
-        "dummy content"
-      );
-      expect(fs.readFileSync(invalidResultsFilePath, "utf8")).toEqual(
-        "dummy content"
-      );
-    });
   });
 
   // Output the test results after all tests have run

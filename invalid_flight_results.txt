@@ -1,1 +1,10 @@
-dummy content
+Error in flight from MAN to JFK with Medium narrow body: Too many first-class seats booked (2 > 0)
+Error in flight from LGW to ORY with Large narrow body: Too many economy seats booked (200 > 180)
+Error in flight from MAN to MAD with Medium narrow body: Too many first-class seats booked (2 > 0)
+Error in flight from LGW to AMS with Medium narrow body: Too many economy seats booked (180 > 160)
+Error in flight from MAN to CAI with Large narrow body: Too many business seats booked (25 > 20)
+Error in flight from LGW to JFKKK with Medium wide body: Invalid airport code: JFKKK
+Error in flight from MAN to ORY with Medium narrow body: Too many economy seats booked (165 > 160)
+Error in flight from LGW to MAD with Large narrow body: Too many business seats booked (22 > 20)
+Error in flight from MAN to AMSSS with Medium narrow body: Invalid airport code: AMSSS
+Error in flight from LGW to CAI with Medium wide body: Too many economy seats booked (385 > 380)

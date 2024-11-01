@@ -25,13 +25,11 @@ function readCsv(filename, delimiter = ",") {
   }
 }
 
+// Helper function to write results to a text file
 function writeResultsToFile(results, filename) {
+  // Takes an array of results and writes them to a specified filename
   const output = results.join("\n");
-  try {
-    fs.writeFileSync(filename, output, { flag: "w" });
-  } catch (error) {
-    console.error(`Failed to write to file ${filename}:`, error);
-  }
+  fs.writeFileSync(filename, output, { flag: "w" }); // 'w' flag creates the file if it does not exist
 }
 
 // Helper function to parse flight data - Converts the flight data from CSV format to structured object
@@ -111,18 +109,16 @@ function calculateValidFlights() {
     writeResultsToFile(results, "valid_flight_results.txt");
   }
 }
+
+// Function to handle invalid flights - Validates flight data and logs errors for invalid flights
 function handleInvalidFlights() {
   const airports = readCsv("airports.csv");
   const aeroplanes = readCsv("aeroplanes.csv");
   const invalidFlights = readCsv("invalid_flight_data.csv");
-
-  // Debugging: Check what invalid flights data is being read
-  console.log("Invalid flights data:", invalidFlights);
-
   const results = [];
 
   invalidFlights.forEach((flight) => {
-    // Parse flight data
+    // Iterate over each invalid flight to process the data
     const flightData = parseFlightData(flight);
     const airport = airports.find(
       (a) => a.code === flightData.overseasAirportCode
@@ -131,13 +127,13 @@ function handleInvalidFlights() {
       (a) => a.type === flightData.aircraftType
     );
 
-    let error = null;
-
+    let error = null; // Variable to store any error message
     if (!airport) {
       error = `Invalid airport code: ${flightData.overseasAirportCode}`;
     } else if (!aeroplane) {
       error = `Invalid aircraft type: ${flightData.aircraftType}`;
     } else {
+      // Calculate distance and other metrics for validation
       const distance =
         flightData.ukAirport === "MAN"
           ? parseInt(airport.distanceMAN)
@@ -172,27 +168,12 @@ function handleInvalidFlights() {
         })`;
       }
     }
-
-    // Log error if one exists
     if (error) {
       const result = `Error in flight from ${flightData.ukAirport} to ${flightData.overseasAirportCode} with ${flightData.aircraftType}: ${error}`;
       results.push(result);
-      console.log(result); // Log each result for debugging
     }
   });
-
-  // Log the number of errors found
-  console.log(`${results.length} invalid flights found.`);
-
-  // Log results array before writing to file
-  console.log("Invalid flight results to be written:", results);
-
-  if (results.length > 0) {
-    writeResultsToFile(results, "invalid_flight_results.txt");
-    console.log("Invalid flight results written to invalid_flight_results.txt");
-  } else {
-    console.log("No invalid flights found.");
-  }
+  writeResultsToFile(results, "invalid_flight_results.txt");
 }
 
 // Ensure the results files exist or create them if they don't

@@ -1,1 +1,18 @@
-dummy content
+Flight from MAN to JFK with Large narrow body:
+Income: £75636.00, Cost: £61716.48, Profit: £13919.52
+Flight from LGW to ORY with Medium narrow body:
+Income: £21600.00, Cost: £3328.00, Profit: £18272.00
+Flight from MAN to MAD with Medium wide body:
+Income: £58400.00, Cost: £11767.00, Profit: £46633.00
+Flight from LGW to AMS with Medium narrow body:
+Income: £14400.00, Cost: £3078.24, Profit: £11321.76
+Flight from MAN to CAI with Large narrow body:
+Income: £97800.00, Cost: £47385.80, Profit: £50414.20
+Flight from MAN to ORY with Medium narrow body:
+Income: £17240.00, Cost: £5709.60, Profit: £11530.40
+Flight from LGW to MAD with Large narrow body:
+Income: £66150.00, Cost: £15662.08, Profit: £50487.92
+Flight from MAN to AMS with Medium narrow body:
+Income: £11650.00, Cost: £3686.00, Profit: £7964.00
+Flight from LGW to CAI with Medium wide body:
+Income: £114400.00, Cost: £34241.20, Profit: £80158.80
