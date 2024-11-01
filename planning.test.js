@@ -11,12 +11,6 @@ const fs = require("fs");
 const path = require("path");
 
 const airportsFilePath = path.resolve(__dirname, "airports.csv");
-const aeroplanesFilePath = path.resolve(__dirname, "aeroplanes.csv");
-const validFlightsFilePath = path.resolve(__dirname, "valid_flight_data.csv");
-const invalidFlightsFilePath = path.resolve(
-  __dirname,
-  "invalid_flight_data.csv"
-);
 const resultsFilePath = path.resolve(__dirname, "results.txt");
 const validResultsFilePath = path.resolve(
   __dirname,
@@ -28,11 +22,6 @@ const invalidResultsFilePath = path.resolve(
 );
 
 describe("Flight Planning Project Tests", () => {
-  const airportsCSV = "airport.csv";
-  const aeroplanesCSV = "aeroplanes.csv";
-  const validFlightsCSV = `valid_flight_data.csv`;
-  const invalidFlightsCSV = `invalid_flight_data.csv`;
-
   describe("readCsv", () => {
     test("should read and parse CSV file correctly", () => {
       const airports = readCsv(airportsFilePath);
