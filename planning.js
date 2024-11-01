@@ -5,13 +5,15 @@ const fs = require("fs");
 // Each object represents a row in the CSV file, with keys corresponding to the headers.
 function readCsv(filename, delimiter = ",") {
   try {
-    const fileContent = fs.readFileSync(filename, { encoding: "utf-8" });
+    const fileContent = fs.readFileSync(filename, { encoding: "utf-8" }); // Read the file content synchronously
     const rows = fileContent
       .split("\n")
       .map((row) => row.trim())
-      .filter((row) => row);
-    const headers = rows[0].split(delimiter).map((header) => header.trim());
+      .filter((row) => row); // Filters empty rows
+
+    const headers = rows[0].split(delimiter).map((header) => header.trim()); // Extracts headers in first row
     const data = rows.slice(1).map((row) => {
+      // Maps remaining rows to objects using headers as keys
       const values = row.split(delimiter).map((value) => value.trim());
       return headers.reduce((acc, header, index) => {
         acc[header] = values[index];
@@ -20,19 +22,21 @@ function readCsv(filename, delimiter = ",") {
     });
     return data;
   } catch (err) {
-    console.log("Error reading file:", filename);
+    console.log("Error reading file:", filename); // Log which file causes errors
   }
 }
 
 // Helper function to write results to a text file
 function writeResultsToFile(results, filename) {
+  // Takes an array of results and writes them to a specified filename
   const output = results.join("\n");
   fs.writeFileSync(filename, output, { flag: "w" }); // 'w' flag creates the file if it does not exist
 }
 
-// Helper function to parse flight data
+// Helper function to parse flight data - Converts the flight data from CSV format to structured object
 function parseFlightData(flight) {
   return {
+    // Extracting and parsing the data
     ukAirport: flight["UK airport"],
     overseasAirportCode: flight["Overseas airport"],
     aircraftType: flight["Type of aircraft"],
@@ -50,16 +54,16 @@ function calculateValidFlights() {
   const airports = readCsv("airports.csv");
   const aeroplanes = readCsv("aeroplanes.csv");
   const validFlights = readCsv("valid_flight_data.csv");
-  const results = [];
+  const results = []; // Initialising an array to store results
 
   validFlights.forEach((flight) => {
-    // Iterate over each valid flight to process the data
+    // Iterating over each valid flight to process the data
     const flightData = parseFlightData(flight);
     const airport = airports.find(
-      (a) => a.code === flightData.overseasAirportCode
+      (a) => a.code === flightData.overseasAirportCode // Finding matching airports
     );
     const aeroplane = aeroplanes.find(
-      (a) => a.type === flightData.aircraftType
+      (a) => a.type === flightData.aircraftType // Finding matching aircrafts
     );
 
     if (airport && aeroplane) {
@@ -76,6 +80,7 @@ function calculateValidFlights() {
 
       // Validate the flight based on distance and total seats
       if (
+        // Checks if distance is withing range AND total seats do not exceed capacity
         distance <= maxRange &&
         totalSeats <=
           parseInt(aeroplane.economyseats) +
@@ -106,7 +111,7 @@ function calculateValidFlights() {
   }
 }
 
-// Function to handle invalid flights
+// Function to handle invalid flights - Validates flight data and logs errors for invalid flights
 function handleInvalidFlights() {
   const airports = readCsv("airports.csv");
   const aeroplanes = readCsv("aeroplanes.csv");
@@ -182,6 +187,7 @@ function ensureFilesExist() {
   });
 }
 
+// Export functions to be used in other modules
 module.exports = {
   readCsv,
   writeResultsToFile,

@@ -10,6 +10,7 @@ const {
 const fs = require("fs");
 const path = require("path");
 
+// Define file paths for the CSV and result files
 const airportsFilePath = path.resolve(__dirname, "airports.csv");
 const resultsFilePath = path.resolve(__dirname, "results.txt");
 const validResultsFilePath = path.resolve(
@@ -22,9 +23,11 @@ const invalidResultsFilePath = path.resolve(
 );
 
 describe("Flight Planning Project Tests", () => {
+  // Test readCsv function to ensure it correctly reads and parses the CSV file
   describe("readCsv", () => {
     test("should read and parse CSV file correctly", () => {
       const airports = readCsv(airportsFilePath);
+      // Verify the parsed content matches the expected data
       expect(airports).toEqual([
         {
           code: "JFK",
@@ -59,20 +62,24 @@ describe("Flight Planning Project Tests", () => {
       ]);
     });
 
+    // Test for handling errors when the file does not exist
     test("should handle file read error gracefully", () => {
       expect(readCsv("nonexistent.csv")).toBeUndefined();
     });
   });
 
+  // Test writeResultsToFile function to ensure it correctly writes data to a file
   describe("writeResultsToFile", () => {
     test("should write results to a file", () => {
       const results = ["Flight details: ...", "Profit: ..."];
       writeResultsToFile(results, resultsFilePath);
       const writtenContent = fs.readFileSync(resultsFilePath, "utf8");
+      // Verify the content written to the file matches the input data
       expect(writtenContent).toEqual(results.join("\n"));
     });
   });
 
+  // Test  parseFlightData function to ensure it correctly parses flight data
   describe("parseFlightData", () => {
     test("should parse flight data correctly", () => {
       const flight = {
@@ -87,6 +94,7 @@ describe("Flight Planning Project Tests", () => {
         "Price of a first class seat": "1899",
       };
       const parsedFlight = parseFlightData(flight);
+      // Verify the parsed flight data matches the expected structure
       expect(parsedFlight).toEqual({
         ukAirport: "MAN",
         overseasAirportCode: "JFK",
@@ -101,6 +109,7 @@ describe("Flight Planning Project Tests", () => {
     });
   });
 
+  // Test calculateValidFlights function to ensure it processes valid flights correctly
   describe("calculateValidFlights", () => {
     test("should calculate valid flights and write to file", () => {
       calculateValidFlights();
@@ -116,10 +125,12 @@ describe("Flight Planning Project Tests", () => {
         "Flight from LGW to CAI with Medium wide body:\nIncome: £114400.00, Cost: £34241.20, Profit: £80158.80",
       ];
       const writtenContent = fs.readFileSync(validResultsFilePath, "utf8");
+      // Verify the content written to the file matches the expected results
       expect(writtenContent).toEqual(expectedResults.join("\n"));
     });
   });
 
+  // Test handleInvalidFlights function to ensure it processes invalid flights correctly
   describe("handleInvalidFlights", () => {
     test("should handle invalid flights and write errors to file", () => {
       handleInvalidFlights();
@@ -136,21 +147,26 @@ describe("Flight Planning Project Tests", () => {
         "Error in flight from LGW to CAI with Medium wide body: Too many economy seats booked (385 > 380)",
       ];
       const writtenContent = fs.readFileSync(invalidResultsFilePath, "utf8");
+      // Verify the content written to the file matches the expected errors
       expect(writtenContent).toEqual(expectedResults.join("\n"));
     });
   });
 
+  // Test ensureFilesExist function to ensure it creates necessary result files
   describe("ensureFilesExist", () => {
     test("should create result files if they do not exist", () => {
       ensureFilesExist();
+      // Verify the existence of the result files
       expect(fs.existsSync(validResultsFilePath)).toBeTruthy();
       expect(fs.existsSync(invalidResultsFilePath)).toBeTruthy();
     });
 
+    // Test to ensure existing files are not overwritten
     test("should not create result files if they already exist", () => {
       fs.writeFileSync(validResultsFilePath, "dummy content");
       fs.writeFileSync(invalidResultsFilePath, "dummy content");
       ensureFilesExist();
+      // Verify the content of the existing files remains unchanged
       expect(fs.readFileSync(validResultsFilePath, "utf8")).toEqual(
         "dummy content"
       );
@@ -160,6 +176,7 @@ describe("Flight Planning Project Tests", () => {
     });
   });
 
+  // Output the test results after all tests have run
   afterAll(() => {
     const results = {
       pass: expect.getState().passed,
